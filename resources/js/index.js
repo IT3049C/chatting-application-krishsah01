@@ -9,17 +9,12 @@ function formatMessage(messageObj, myNameInput){
   const sender = messageObj.sender;
   const timestamp = messageObj.timestamp;
   const date = new Date(timestamp);
-  const time = date.toLocaleTimeString('en-us');
-
+  const time = date.toLocaleTimeString(`en-us`);
   if (messageObj.sender === myNameInput){
     chatboxHTML = `<div class="mine messages">
                     <div class="message">
                       ${text}
                     </div>
-                  </div>
-                  <div class="sender-info">
-                    ${time}
-                  </div>
                   </div>`
   }else{
     chatboxHTML = `<div class="yours messages">
@@ -34,30 +29,21 @@ function formatMessage(messageObj, myNameInput){
   return chatboxHTML;
 };
 
-function fetchMessage(){
-  const arrMsg = [{
-    'id': 1,
-    'text': "What up?",
-    'sender': "Krish Sah",
-    'timestamp': 1537410673072
-  },
-{
-  'id': 2,
-    'text': "good",
-    'sender': "Jonny Boi",
-    'timestamp': 1537410673072*100
-},
-{
-  'id': 3,
-    'text': "Kill Them!",
-    'sender': "Thomas Shelby",
-    'timestamp': 1537410673072*1000
-}];
-  return arrMsg;
+async function fetchMessage(){
+  try{
+    const response = await fetch('https://it3049c-chat.fly.dev/messages');
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+    const data = await response.json()
+    return data
+  }catch(error){
+    console.log(error)
+  }
 };
 
-function updateMessageInChatBox(){
-  const messages = fetchMessage()
+async function updateMessageInChatBox(){
+  const messages = await fetchMessage()
   let formatedMessage = "";
   messages.forEach(messages => {
     formatedMessage += formatMessage(messages,nameInput.value);
@@ -65,4 +51,33 @@ function updateMessageInChatBox(){
 chatBox.innerHTML = formatedMessage;
 };
 
-updateMessageInChatBox();
+async function send(sender, message){
+  const timestamp = new Date()
+  const messageObject = {
+    "sender": sender,
+    "text": message,
+    "timestamp": timestamp
+  }
+  try{
+    const response = await fetch('https://it3049c-chat.fly.dev/messages', {
+      method: "POST",
+      body: JSON.stringify(messageObject),
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    });
+  }catch(error){
+    console.log(error)
+  }
+}
+
+sendButton.addEventListener(`click`, function(e){
+  e.preventDefault();
+  const sender = nameInput.value
+  const message = messgeInput.value
+  send(sender,message);
+  messgeInput.value = ""
+});
+
+
+setInterval(updateMessageInChatBox, 10000);
