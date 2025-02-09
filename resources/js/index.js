@@ -1,5 +1,5 @@
 const nameInput = document.getElementById("my-name-input");
-const messgeInput = document.getElementById("my-message");
+const messageInput = document.getElementById("my-message-input");
 const sendButton = document.getElementById("send-button");
 const chatBox = document.getElementById("chat");
 
@@ -15,6 +15,9 @@ function formatMessage(messageObj, myNameInput){
                     <div class="message">
                       ${text}
                     </div>
+                    <div class="sender-info">
+                      ${sender} ${time}
+                    </div>
                   </div>`
   }else{
     chatboxHTML = `<div class="yours messages">
@@ -29,7 +32,7 @@ function formatMessage(messageObj, myNameInput){
   return chatboxHTML;
 };
 
-async function fetchMessage(){
+async function fetchMessages(){
   try{
     const response = await fetch('https://it3049c-chat.fly.dev/messages');
     if (!response.ok) {
@@ -43,7 +46,7 @@ async function fetchMessage(){
 };
 
 async function updateMessageInChatBox(){
-  const messages = await fetchMessage()
+  const messages = await fetchMessages()
   let formatedMessage = "";
   messages.forEach(messages => {
     formatedMessage += formatMessage(messages,nameInput.value);
@@ -59,13 +62,14 @@ async function send(sender, message){
     "timestamp": timestamp
   }
   try{
-    const response = await fetch('https://it3049c-chat.fly.dev/messages', {
+    await fetch('https://it3049c-chat.fly.dev/messages', {
       method: "POST",
       body: JSON.stringify(messageObject),
       headers: {
         'Content-Type': 'application/json'
       },
     });
+    await updateMessageInChatBox();
   }catch(error){
     console.log(error)
   }
@@ -74,10 +78,9 @@ async function send(sender, message){
 sendButton.addEventListener(`click`, function(e){
   e.preventDefault();
   const sender = nameInput.value
-  const message = messgeInput.value
+  const message = messageInput.value
   send(sender,message);
-  messgeInput.value = ""
+  messageInput.value = ""
 });
-
-
-setInterval(updateMessageInChatBox, 10000);
+setInterval(updateMessageInChatBox, 5000);
+updateMessageInChatBox();
